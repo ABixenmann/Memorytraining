@@ -64,21 +64,15 @@ def get_stats_dataframe():
 	return df.sort_values('Fehler', ascending=False)
 
 
+def save_progress(data):
+    df = pd.DataFrame(data)
+    df.to_csv('memory_progress.csv', index=False)
+
+
 def load_progress():
-	"""Lädt die Fortschrittsdaten aus der JSON-Datei."""
-	if os.path.exists(PROGRESS_FILE):
-		try:
-			with open(PROGRESS_FILE, 'r', encoding='utf-8') as f:
-				return json.load(f)
-		except:
-			return []
-	return []
-
-
-def save_progress(progress_data):
-	"""Speichert die Fortschrittsdaten in der JSON-Datei."""
-	with open(PROGRESS_FILE, 'w', encoding='utf-8') as f:
-		json.dump(progress_data, f, ensure_ascii=False, indent=2)
+    if os.path.exists('memory_progress.csv'):
+        return pd.read_csv('memory_progress.csv').to_dict(orient='records')
+    return []
 
 
 def add_progress_entry(correct, total):
