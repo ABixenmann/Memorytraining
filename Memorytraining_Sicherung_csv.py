@@ -8,8 +8,6 @@ import html as html_lib
 import streamlit.components.v1 as components
 import plotly.graph_objects as go
 from datetime import datetime
-from supabase import create_client, Client
-import pathlib
 
 # Pfad zur festen Excel-Datei (ändere hier bei Bedarf)
 # Aktuell nutzt die Datei im gleichen Ordner wie dieses Skript: 'sample_memory.xlsx'
@@ -20,55 +18,6 @@ STATS_FILE = os.path.join(os.getcwd(), "memory_stats.json")
 
 # Pfad zur Fortschrittsdatei
 PROGRESS_FILE = os.path.join(os.getcwd(), "memory_progress.json")
-
-# Supabase Verbindung
-@st.cache_resource
-def get_supabase_client() -> Client:
-	import pathlib
-	
-	# Versuche zuerst st.secrets zu lesen
-	url = st.secrets.get("SUPABASE_URL")
-	key = st.secrets.get("SUPABASE_KEY")
-	
-	# Falls das nicht funktioniert, lies direkt aus secrets.toml
-	if not url or len(key or "") < 100:
-		print("⚠️ st.secrets funktioniert nicht, lese direkt aus secrets.toml...")
-		try:
-			secrets_path = pathlib.Path(__file__).parent / ".streamlit" / "secrets.toml"
-			if secrets_path.exists():
-				print(f"📁 Lese von: {secrets_path}")
-				with open(secrets_path, "r", encoding="utf-8") as f:
-					content = f.read()
-					print(f"📄 Dateiinhalt:\n{content[:500]}")
-					# Parse manuell
-					for line in content.split("\n"):
-						line = line.strip()
-						if line.startswith("SUPABASE_URL"):
-							url = line.split("=", 1)[1].strip().strip('"')
-						elif line.startswith("SUPABASE_KEY"):
-							key = line.split("=", 1)[1].strip().strip('"')
-					print(f"✅ Manuell geparst: URL={url}, KEY länge={len(key)}")
-		except Exception as e:
-			print(f"❌ Fehler beim Lesen der secrets.toml: {e}")
-	
-	print(f"🔍 DEBUG: URL={url}")
-	print(f"🔍 DEBUG: KEY länge={len(key) if key else 0}")
-	
-	if not url or not key:
-		st.error("❌ Supabase-Credentials nicht gefunden! Bitte .streamlit/secrets.toml prüfen.")
-		st.stop()
-	if not url.startswith("https://"):
-		st.error("❌ URL muss mit 'https://' beginnen")
-		st.stop()
-	try:
-		print("🔗 Versuche mit Supabase zu verbinden...")
-		client = create_client(url, key)
-		print("✅ Supabase Client erstellt!")
-		return client
-	except Exception as e:
-		print(f"❌ Fehler beim create_client: {type(e).__name__}: {e}")
-		st.error(f"❌ Fehler beim Verbinden zu Supabase: {e}")
-		st.stop()
 
 
 def normalize(s: str) -> str:
@@ -116,53 +65,28 @@ def get_stats_dataframe():
 
 
 def save_progress(data):
-	"""Speichert Fortschrittsdaten in Supabase."""
-	try:
-		supabase = get_supabase_client()
-		for entry in data:
-			supabase.table("progress").insert({
-				"timestamp": entry.get("timestamp"),
-				"correct": int(entry.get("correct", 0)),
-				"total": int(entry.get("total", 0)),
-				"percentage": float(entry.get("percentage", 0))
-			}).execute()
-		st.success("✅ Fortschritt in Supabase gespeichert!")
-	except Exception as e:
-		st.error(f"❌ Fehler beim Speichern: {e}")
+    df = pd.DataFrame(data)
+    df.to_csv('memory_progress.csv', index=False)
 
 
 def load_progress():
-	"""Lädt Fortschrittsdaten aus Supabase."""
-	try:
-		print("🔍 Versuche Daten zu laden...")
-		supabase = get_supabase_client()
-		print("✅ Supabase Client erstellt")
-		response = supabase.table("progress").select("*").execute()
-		print(f"✅ Datenbankabfrage erfolgreich: {len(response.data)} Einträge")
-		if response.data:
-			return response.data
-		return []
-	except Exception as e:
-		print(f"❌ Fehler in load_progress: {e}")
-		st.warning(f"⚠️ Fehler beim Laden: {e}")
-		return []
+    if os.path.exists('memory_progress.csv'):
+        return pd.read_csv('memory_progress.csv').to_dict(orient='records')
+    return []
 
 
 def add_progress_entry(correct, total):
-	"""Fügt einen neuen Fortschrittseintrag zu Supabase hinzu."""
-	try:
-		supabase = get_supabase_client()
-		timestamp = datetime.now().isoformat()
-		percentage = (correct / total * 100) if total > 0 else 0
-		
-		supabase.table("progress").insert({
-			"timestamp": timestamp,
-			"correct": correct,
-			"total": total,
-			"percentage": percentage
-		}).execute()
-	except Exception as e:
-		st.error(f"❌ Fehler beim Speichern der Runde: {e}")
+	"""Fügt einen neuen Fortschrittseintrag hinzu."""
+	progress = load_progress()
+	timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+	percentage = (correct / total * 100) if total > 0 else 0
+	progress.append({
+		"timestamp": timestamp,
+		"correct": correct,
+		"total": total,
+		"percentage": percentage
+	})
+	save_progress(progress)
 
 
 def plot_progress():
@@ -172,16 +96,7 @@ def plot_progress():
 		return None
 	
 	# Daten extrahieren
-	timestamps = []
-	for entry in progress:
-		try:
-			ts = entry["timestamp"]
-			if "T" in ts:  # ISO format
-				timestamps.append(datetime.fromisoformat(ts))
-			else:  # alte Format
-				timestamps.append(datetime.strptime(ts, "%Y-%m-%d %H:%M:%S"))
-		except:
-			pass
+	timestamps = [datetime.strptime(entry["timestamp"], "%Y-%m-%d %H:%M:%S") for entry in progress]
 	percentages = [entry["percentage"] for entry in progress]
 	correct_counts = [entry["correct"] for entry in progress]
 	total_counts = [entry["total"] for entry in progress]

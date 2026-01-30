@@ -1,0 +1,80 @@
+[
+  {
+    "timestamp": "2026-01-15 08:16:44",
+    "correct": 7,
+    "total": 9,
+    "percentage": 77.77777777777779
+  },
+  {
+    "timestamp": "2026-01-15 08:18:43",
+    "correct": 1,
+    "total": 5,
+    "percentage": 20.0
+  },
+  {
+    "timestamp": "2026-01-15 08:19:36",
+    "correct": 5,
+    "total": 5,
+    "percentage": 100.0
+  },
+  {
+    "timestamp": "2026-01-15 08:20:48",
+    "correct": 4,
+    "total": 5,
+    "percentage": 80.0
+  },
+  {
+    "timestamp": "2026-01-15 08:30:34",
+    "correct": 4,
+    "total": 5,
+    "percentage": 80.0
+  },
+  {
+    "timestamp": "2026-01-15 08:32:21",
+    "correct": 3,
+    "total": 5,
+    "percentage": 60.0
+  },
+  {
+    "timestamp": "2026-01-15 08:33:07",
+    "correct": 3,
+    "total": 5,
+    "percentage": 60.0
+  },
+  {
+    "timestamp": "2026-01-15 08:33:45",
+    "correct": 4,
+    "total": 5,
+    "percentage": 80.0
+  },
+  {
+    "timestamp": "2026-01-15 09:02:36",
+    "correct": 2,
+    "total": 3,
+    "percentage": 66.66666666666666
+  },
+  {
+    "timestamp": "2026-01-16 14:37:36",
+    "correct": 6,
+    "total": 13,
+    "percentage": 46.15384615384615
+  },
+  {
+    "timestamp": "2026-01-16 14:39:18",
+    "correct": 3,
+    "total": 6,
+    "percentage": 50.0
+  },
+  {
+    "timestamp": "2026-01-16 14:41:44",
+    "correct": 0,
+    "total": 1,
+    "percentage": 0.0
+  },
+  {
+    "timestamp": "2026-01-27 08:42:20",
+    "correct": 0,
+    "total": 0,
+    "percentage": 0
+  }
+]
