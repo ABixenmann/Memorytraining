@@ -388,7 +388,7 @@ def main():
 	if stats_df is not None and len(stats_df) > 0:
 		st.sidebar.write(f"Gesamt erfasste Fehler: {stats_df['Fehler'].sum()}")
 		with st.sidebar.expander("Top 25 häufigste Fehler"):
-			st.dataframe(stats_df.head(25), use_container_width=True)
+			st.dataframe(stats_df.head(25), width='stretch')
 		if st.sidebar.button("🗑️ Statistik zurücksetzen"):
 			if os.path.exists(STATS_FILE):
 				os.remove(STATS_FILE)
@@ -556,7 +556,7 @@ def main():
 			st.subheader("📈 Lernfortschritt")
 			progress_fig = plot_progress()
 			if progress_fig:
-				st.plotly_chart(progress_fig, use_container_width=True)
+				st.plotly_chart(progress_fig, width='stretch')
 			else:
 				st.info("Noch keine Fortschrittsdaten vorhanden.")
 			# Pie chart (single, with explicit color mapping: Grün = Richtig, Rot = Falsch)
