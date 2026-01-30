@@ -388,6 +388,8 @@ def main():
 	if stats_df is not None and len(stats_df) > 0:
 		st.sidebar.write(f"Gesamt erfasste Fehler: {stats_df['Fehler'].sum()}")
 		with st.sidebar.expander("Top 25 häufigste Fehler"):
+			# Hinweis: `use_container_width` wurde ersetzt durch `width`.
+			# Für volle Breite benutze `width='stretch'`.
 			st.dataframe(stats_df.head(25), width='stretch')
 		if st.sidebar.button("🗑️ Statistik zurücksetzen"):
 			if os.path.exists(STATS_FILE):
@@ -556,6 +558,7 @@ def main():
 			st.subheader("📈 Lernfortschritt")
 			progress_fig = plot_progress()
 			if progress_fig:
+				# Hinweis: `use_container_width` deprecated — nutze `width='stretch'`.
 				st.plotly_chart(progress_fig, width='stretch')
 			else:
 				st.info("Noch keine Fortschrittsdaten vorhanden.")
