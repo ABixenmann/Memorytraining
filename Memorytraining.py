@@ -328,6 +328,8 @@ def start_quiz(df, mode, n_questions, shuffle=True, reset_score=True):
 	st.session_state.finished_round = False
 	# reset progress_saved flag for new round
 	st.session_state.progress_saved = False
+	# reset answered flag so inputs are enabled for the new round
+	st.session_state.answered = False
 
 
 def check_answer(user_ans: str, correct: str) -> bool:
@@ -425,6 +427,9 @@ def main():
 
 	if st.session_state.questions:
 		idx = st.session_state.index
+		# reset answered flag when question changes
+		if "answered" not in st.session_state:
+			st.session_state.answered = False
 		question = st.session_state.questions[idx]
 		if st.session_state.mode == "Bezeichnung → Bedeutung":
 			prompt, solution = question
@@ -437,36 +442,42 @@ def main():
 		# Eingabefeld: sofort sichtbar; nach Absenden automatisch zur nächsten Frage
 		input_key = f"input_{idx}"
 		with st.form(key=f"form_{idx}"):
-			user_input = st.text_area("Deine Antwort", key=input_key)
-			submitted = st.form_submit_button("Absenden")
-			if submitted:
+			# disable inputs once the question has been answered
+			user_input = st.text_area("Deine Antwort",
+				key=input_key,
+				disabled=st.session_state.get("answered", False))
+			submitted = st.form_submit_button("Absenden",
+				disabled=st.session_state.get("answered", False))
+			if submitted and not st.session_state.get("answered", False):
 				correct = check_answer(user_input, solution)
 				st.session_state.answers.append((prompt, solution, user_input, correct))
+				st.session_state.answered = True
 				if correct:
 					st.session_state.score += 1
 					st.success("Richtig!")
+					# advance automatically on correct answer
+					if st.session_state.index < len(st.session_state.questions) - 1:
+						st.session_state.index += 1
+						st.session_state.answered = False
+						st.rerun()
+					else:
+						st.session_state.finished_round = True
+						st.rerun()
 				else:
 					# Fehlerstatistik aktualisieren
 					update_error_stats(prompt, solution)
 					st.error("Nicht korrekt.")
 					st.info(f"Richtige Antwort: {solution}")
-				# automatisch zur nächsten Frage springen
-				if st.session_state.index < len(st.session_state.questions) - 1:
-					st.session_state.index += 1
-					st.rerun()
-				else:
-						# letzte Frage beantwortet -> markiere Runde als fertig, aber zeige Ergebnis erst auf Button-Klick
-						st.session_state.finished_round = True
-						st.rerun()
-
 		cols = st.columns(3)
 		if cols[0].button("Zurück"):
 			if st.session_state.index > 0:
 				st.session_state.index -= 1
+				st.session_state.answered = False
 				st.rerun()
 		if cols[1].button("Nächste Frage"):
 			if st.session_state.index < len(st.session_state.questions) - 1:
 				st.session_state.index += 1
+				st.session_state.answered = False
 				st.rerun()
 		if cols[2].button("Beenden und Ergebnis anzeigen"):
 			st.session_state.index = len(st.session_state.questions) - 1
