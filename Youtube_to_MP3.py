@@ -2,7 +2,7 @@ import os
 import yt_dlp
 
 # YouTube-Link hier einfügen
-url = "https://youtu.be/9On2qtIuBQc"
+url = "https://youtu.be/EZVFdxvFou4"
 
 # Standard-Download-Ordner des Benutzers ermitteln
 downloads_path = os.path.join(os.path.expanduser("~"), "Downloads")
